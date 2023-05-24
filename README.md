@@ -49,29 +49,36 @@ There is no installer or package at the moment, but try this:
     python test_benchmark_inference.py -t <path_to_tokenizer.model> -c <path_to_config.json> \ 
       -m <path_to_model.safetensors> -p -ppl
 
+Alternatively, just specify a directory containing `tokenizer.model`, `config.json` and a single `.safetensors` file: 
+
+    python test_benchmark_inference.py -d <path_to_model_files> -p -ppl
+
 The CUDA extension is loaded at runtime so there's no need to install it separately. It will be compiled on the first
 run and cached to `~/.cache/torch_extensions/` which could take a little while. If nothing happens at first, give it
 a minute to compile.
 
-Chatbot example:
+Chatbot examples:
 
-    python test_chatbot.py -t <path_to_tokenizer.model> -c <path_to_config.json> \
-      -m <path_to_model.safetensors> -un "Jeff" -p prompt_chatbort.txt
+    python test_chatbot.py -d <path_to_model_files> -un "Jeff" -p prompt_chatbort.txt
+
+    python test_chatbot.py -d <path_to_model_files> -un "Maxine" -p prompt_assistant.txt -nnl \
+      -temp 1.00 -topp 0.95 -beams 5 -beamlen 20
 
 ## Results so far
 
 ### New implementation
-| Model   | Size | groupsize | act  | Seq. len.            | VRAM      | Long seq. | Ind.    | Ppl  |
-|---------|------|-----------|------|----------------------|-----------|-----------|---------|------|
-| Llama   | 7B   | 128       | no   | 2,048 t              | 5,094 MB  | 2,282 t/s | 103 t/s | 6.45 |
-| Llama   | 13B  | 128       | no   | 2,048 t              | 8,975 MB  | 1,908 t/s | 65 t/s  | 5.62 |
-| Llama   | 30B  | 128       | no   | 2,048 t              | 20,544 MB | 1,127 t/s | 32 t/s  | 4.60 |
-| Llama   | 30B  | 128       | yes  | 2,048 t              | 20,558 MB | 1,112 t/s | 31 t/s  | 4.55 |
-| Llama   | 30B  | 32        | yes  | 1,550 t <sup>1</sup> | 21,254 MB | 886 t/s   | 30 t/s  | 4.52 |
-| Koala   | 13B  | 128       | yes  | 2,048 t              | 8,981 MB  | 1,837 t/s | 63 t/s  | 6.73 |
+| Model    | Size | groupsize | act             | Seq. len.            | VRAM      | Long seq. | Ind.    | Ppl  |
+|----------|------|-----------|-----------------|----------------------|-----------|-----------|---------|------|
+| Llama    | 7B   | 128       | no              | 2,048 t              | 5,093 MB  | 2,497 t/s | 103 t/s | 6.45 |
+| Llama    | 13B  | 128       | no              | 2,048 t              | 8,975 MB  | 2,291 t/s | 66 t/s  | 5.62 |
+| Llama    | 30B  | 128       | no              | 2,048 t              | 20,544 MB | 1,508 t/s | 32 t/s  | 4.60 |
+| Llama    | 30B  | 128       | yes             | 2,048 t              | 20,558 MB | 1,359 t/s | 31 t/s  | 4.55 |
+| Llama    | 30B  | 32        | yes             | 1,550 t <sup>1</sup> | 21,254 MB | 1,095 t/s | 31 t/s  | 4.52 |
+| Koala    | 13B  | 128       | yes             | 2,048 t              | 8,981 MB  | 1,777 t/s | 63 t/s  | 6.73 |
+| WizardLM | 30B  | -         | no <sup>2</sup> | 2,048 t              | 19,950 MB | 1,422 t/s | 33 t/s  | 5.75 |
 
-
-<sup>1</sup> Can not achieve full sequence length without OoM (yet)
+<sup>1</sup> Can not achieve full sequence length without OoM (yet)  
+<sup>2</sup> Not quite sure if this is act-order or not. Weights have no group index, at least   
 
 All tests done on stock RTX 4090, running with a desktop environment, with a few other apps also using VRAM.
 
@@ -116,23 +123,7 @@ slower as well over time.
 
 ## Todo
 
-- [x] Support for act-order models ~~(a bit slow for now)~~
-- [x] ~~Support for v1 models without groupsize~~ Nah.
-- [ ] Fix layer streaming 
-- [ ] Tests on a wider range of models and variants
-- [ ] Consider support for loading GGML models
-- [ ] Figure out an apples-to-apples way of comparing perplexity with other implementations
-- [ ] Options for trading off memory usage for more performance (e.g. float32 tensors)
-- [ ] Provide alternative backend to allow layers on CPU
-- [ ] Fused QKV projection and fused MLP
-- [x] Support for de-quantizing select matrices at load time
-- [ ] A web interface maybe?
-- [x] Memory-efficient beam search implementation
-- [ ] Optimized beam search
-- [ ] More sampling features
-- [ ] (Multi) LoRA support for inference
-- [ ] Allow for backpropagation
-- [ ] LoRA training features
+Moved the todo list [here](TODO.md).  
 
 ## Recent updates
 
